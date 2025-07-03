@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpException, HttpStatus, UploadedFile, UseInterceptors, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, HttpException, HttpStatus, UploadedFile, UseInterceptors, Get, Param, Put, Patch } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { BeerService } from './beer.service';
 
@@ -40,6 +40,16 @@ export class BeerController {
   async getBeerById(@Param('id') id: string) {
     try {
       return await this.beerService.getBeerById(id);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Put(':id')
+  async updateBeer(@Param('id') id: string, @Body() updateBeerDto: any) {
+    try {
+      const beer = await this.beerService.updateBeer(id, updateBeerDto);
+      return beer;
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }

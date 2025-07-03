@@ -5,6 +5,11 @@ dotenv.config();
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Brak wymaganych zmiennych środowiskowych SUPABASE_URL lub SUPABASE_KEY');
+}
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 @Injectable()
@@ -56,6 +61,19 @@ export class BeerService {
       .from('beers')
       .select('*')
       .eq('id', id)
+      .single();
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data;
+  }
+
+  async updateBeer(id: string, updateBeerDto: any) {
+    const { data, error } = await supabase
+      .from('beers')
+      .update(updateBeerDto)
+      .eq('id', id)
+      .select()
       .single();
     if (error) {
       throw new Error(error.message);
