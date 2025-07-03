@@ -80,4 +80,40 @@ export class BeerService {
     }
     return data;
   }
+
+  async getStats() {
+    // Pobierz wszystkie piwa
+    const { data: beers, error } = await supabase
+      .from('beers')
+      .select('*');
+    if (error) {
+      throw new Error(error.message);
+    }
+    const totalBeers = beers.length;
+    const averageScore = beers.length > 0 ? (beers.reduce((sum, b) => sum + (b.score || 0), 0) / beers.length).toFixed(2) : 0;
+    const now = new Date();
+    const thisMonthCount = beers.filter(b => {
+      const created = new Date(b.created_at);
+      return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
+    }).length;
+    // policz najczęściej występujący browar
+    const breweryCount: Record<string, number> = {};
+    beers.forEach(b => {
+      if (b.brewery) breweryCount[b.brewery] = (breweryCount[b.brewery] || 0) + 1;
+    });
+    let favoriteBrewer: string | null = null;
+    let maxCount = 0;
+    for (const [brewery, count] of Object.entries(breweryCount)) {
+      if (count > maxCount) {
+        favoriteBrewer = brewery;
+        maxCount = count;
+      }
+    }
+    return {
+      totalBeers,
+      averageScore: Number(averageScore),
+      thisMonthCount,
+      favoriteBrewer: favoriteBrewer || null
+    };
+  }
 } 

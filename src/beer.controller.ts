@@ -27,6 +27,15 @@ export class BeerController {
     }
   }
 
+  @Get('stats')
+  async getStats() {
+    try {
+      return await this.beerService.getStats();
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   @Get()
   async getAllBeers() {
     try {
