@@ -48,7 +48,7 @@ export class BeerService {
   async getAllBeers() {
     const { data, error } = await supabase
       .from('beers')
-      .select('*')
+      .select('*, breweries(name), styles(name)')
       .order('created_at', { ascending: false });
     if (error) {
       throw new Error(error.message);
@@ -59,7 +59,7 @@ export class BeerService {
   async getBeerById(id: string) {
     const { data, error } = await supabase
       .from('beers')
-      .select('*')
+      .select('*, breweries(name), styles(name)')
       .eq('id', id)
       .single();
     if (error) {
@@ -82,10 +82,10 @@ export class BeerService {
   }
 
   async getStats() {
-    // Pobierz wszystkie piwa
+    // Pobierz wszystkie piwa z joinem do breweries
     const { data: beers, error } = await supabase
       .from('beers')
-      .select('*');
+      .select('*, breweries(name)');
     if (error) {
       throw new Error(error.message);
     }
@@ -96,24 +96,43 @@ export class BeerService {
       const created = new Date(b.created_at);
       return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
     }).length;
-    // policz najczęściej występujący browar
-    const breweryCount: Record<string, number> = {};
+    // policz najczęściej występujący browar po brewery_id
+    const breweryCount: Record<number, number> = {};
     beers.forEach(b => {
-      if (b.brewery) breweryCount[b.brewery] = (breweryCount[b.brewery] || 0) + 1;
+      if (b.brewery_id) breweryCount[b.brewery_id] = (breweryCount[b.brewery_id] || 0) + 1;
     });
-    let favoriteBrewer: string | null = null;
+    let favoriteBrewerId: number | null = null;
     let maxCount = 0;
-    for (const [brewery, count] of Object.entries(breweryCount)) {
+    for (const [breweryId, count] of Object.entries(breweryCount)) {
       if (count > maxCount) {
-        favoriteBrewer = brewery;
+        favoriteBrewerId = Number(breweryId);
         maxCount = count;
       }
+    }
+    // znajdź nazwę browaru po id
+    let favoriteBrewerName: string | null = null;
+    if (favoriteBrewerId) {
+      const found = beers.find(b => b.brewery_id === favoriteBrewerId);
+      favoriteBrewerName = found?.breweries?.name || null;
     }
     return {
       totalBeers,
       averageScore: Number(averageScore),
       thisMonthCount,
-      favoriteBrewer: favoriteBrewer || null
+      favoriteBrewer: favoriteBrewerName
     };
+  }
+
+  async getLastBeer() {
+    const { data, error } = await supabase
+      .from('beers')
+      .select('*, breweries(name), styles(name)')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data;
   }
 } 
