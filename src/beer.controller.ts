@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpException, HttpStatus, UploadedFile, UseInterceptors, Get, Param, Put, Patch } from '@nestjs/common';
+import { Controller, Post, Body, HttpException, HttpStatus, UploadedFile, UseInterceptors, Get, Param, Put, Patch, Headers } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { BeerService } from './beer.service';
 import { createClient } from '@supabase/supabase-js';
@@ -27,6 +27,50 @@ export class BeerController {
     try {
       const photoUrl = await this.beerService.uploadPhoto(file);
       return { url: photoUrl };
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Post('breweries')
+  async addBrewery(@Body() createBreweryDto: any, @Headers('authorization') auth: string) {
+    try {
+      const token = auth?.replace('Bearer ', '');
+      const brewery = await this.beerService.addBrewery(createBreweryDto, token);
+      return brewery;
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Put('breweries/:id')
+  async updateBrewery(@Param('id') id: string, @Body() updateBreweryDto: any, @Headers('authorization') auth: string) {
+    try {
+      const token = auth?.replace('Bearer ', '');
+      const brewery = await this.beerService.updateBrewery(id, updateBreweryDto, token);
+      return brewery;
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Post('styles')
+  async addStyle(@Body() createStyleDto: any, @Headers('authorization') auth: string) {
+    try {
+      const token = auth?.replace('Bearer ', '');
+      const style = await this.beerService.addStyle(createStyleDto, token);
+      return style;
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Put('styles/:id')
+  async updateStyle(@Param('id') id: string, @Body() updateStyleDto: any, @Headers('authorization') auth: string) {
+    try {
+      const token = auth?.replace('Bearer ', '');
+      const style = await this.beerService.updateStyle(id, updateStyleDto, token);
+      return style;
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }

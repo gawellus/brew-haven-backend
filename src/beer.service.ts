@@ -12,6 +12,15 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+function createSupabaseForUser(token?: string) {
+  if (token) {
+    return createClient(supabaseUrl as string, supabaseKey as string, {
+      global: { headers: { Authorization: `Bearer ${token}` } }
+    });
+  }
+  return createClient(supabaseUrl as string, supabaseKey as string);
+}
+
 @Injectable()
 export class BeerService {
   async addBeer(createBeerDto: any) {
@@ -132,6 +141,67 @@ export class BeerService {
       .single();
     if (error) {
       throw new Error(error.message);
+    }
+    return data;
+  }
+
+  async addBrewery(createBreweryDto: any, token?: string) {
+    const { name, country } = createBreweryDto;
+    const supabaseUser = createSupabaseForUser(token);
+    const { data, error } = await supabaseUser
+      .from('breweries')
+      .insert([{ name, country }])
+      .select()
+      .single();
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data;
+  }
+
+  async updateBrewery(id: string, updateBreweryDto: any, token?: string) {
+    const supabaseUser = createSupabaseForUser(token);
+    const numericId = Number(id);
+    console.log('updateBrewery', { id, numericId, type: typeof numericId, updateBreweryDto, token });
+    const { data, error } = await supabaseUser
+      .from('breweries')
+      .update(updateBreweryDto)
+      .eq('id', numericId)
+    if (error) {
+      throw new Error(error.message);
+    }
+    return true;
+  }
+
+  async addStyle(createStyleDto: any, token?: string) {
+    const { name } = createStyleDto;
+    const supabaseUser = createSupabaseForUser(token);
+    const { data, error } = await supabaseUser
+      .from('styles')
+      .insert([{ name }])
+      .select()
+      .single();
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data;
+  }
+
+  async updateStyle(id: string, updateStyleDto: any, token?: string) {
+    const supabaseUser = createSupabaseForUser(token);
+    const numericId = Number(id);
+    console.log('updateStyle', { id, numericId, type: typeof numericId, updateStyleDto, token });
+    const { data, error } = await supabaseUser
+      .from('styles')
+      .update(updateStyleDto)
+      .eq('id', numericId)
+      .select()
+      .single();
+    if (error) {
+      throw new Error(error.message);
+    }
+    if (!data) {
+      throw new Error('Not found or no permission to update this style');
     }
     return data;
   }
