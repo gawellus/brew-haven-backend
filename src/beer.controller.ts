@@ -127,9 +127,10 @@ export class BeerController {
   }
 
   @Put(':id')
-  async updateBeer(@Param('id') id: string, @Body() updateBeerDto: any) {
+  async updateBeer(@Param('id') id: string, @Body() updateBeerDto: any, @Headers('authorization') auth: string) {
     try {
-      const beer = await this.beerService.updateBeer(id, updateBeerDto);
+      const token = auth?.replace('Bearer ', '');
+      const beer = await this.beerService.updateBeer(id, updateBeerDto, token);
       return beer;
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);

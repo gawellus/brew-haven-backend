@@ -24,11 +24,11 @@ function createSupabaseForUser(token?: string) {
 @Injectable()
 export class BeerService {
   async addBeer(createBeerDto: any) {
-    const { name, brewery, style, abv, score, color, notes, photo_url } = createBeerDto;
+    const { name, brewery_id, style_id, abv, score, color, notes, photo_url, plato, add_notes } = createBeerDto;
     const { data, error } = await supabase
       .from('beers')
       .insert([
-        { name, brewery, style, abv, score, color, notes, photo_url }
+        { name, brewery_id, style_id, abv, score, color, notes, photo_url, plato, add_notes }
       ])
       .select()
       .single();
@@ -77,13 +77,20 @@ export class BeerService {
     return data;
   }
 
-  async updateBeer(id: string, updateBeerDto: any) {
-    const { data, error } = await supabase
+  async updateBeer(id: string, updateBeerDto: any, token?: string) {
+    // Tworzę nowy obiekt tylko z dozwolonymi polami
+    const { name, brewery_id, style_id, abv, score, color, notes, photo_url, plato, add_notes } = updateBeerDto;
+    const updateObj: any = { name, brewery_id, style_id, abv, score, color, notes, photo_url, plato, add_notes };
+    // Usuwam undefined
+    Object.keys(updateObj).forEach(key => updateObj[key] === undefined && delete updateObj[key]);
+    const supabaseUser = createSupabaseForUser(token);
+    console.log('updateBeer', { id, updateObj });
+    const { data, error } = await supabaseUser
       .from('beers')
-      .update(updateBeerDto)
+      .update(updateObj)
       .eq('id', id)
-      .select()
-      .single();
+      .select();
+    console.log('updateBeer response', { data, error });
     if (error) {
       throw new Error(error.message);
     }
