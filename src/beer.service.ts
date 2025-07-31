@@ -24,11 +24,11 @@ function createSupabaseForUser(token?: string) {
 @Injectable()
 export class BeerService {
   async addBeer(createBeerDto: any) {
-    const { name, brewery_id, style_id, abv, score, color, notes, photo_url, plato, add_notes } = createBeerDto;
+    const { name, brewery_id, style_id, abv, score, color, notes, photo_url, plato, add_notes, ibu } = createBeerDto;
     const { data, error } = await supabase
       .from('beers')
       .insert([
-        { name, brewery_id, style_id, abv, score, color, notes, photo_url, plato, add_notes }
+        { name, brewery_id, style_id, abv, score, color, notes, photo_url, plato, add_notes, ibu }
       ])
       .select()
       .single();
@@ -79,8 +79,8 @@ export class BeerService {
 
   async updateBeer(id: string, updateBeerDto: any, token?: string) {
     // Tworzę nowy obiekt tylko z dozwolonymi polami
-    const { name, brewery_id, style_id, abv, score, color, notes, photo_url, plato, add_notes } = updateBeerDto;
-    const updateObj: any = { name, brewery_id, style_id, abv, score, color, notes, photo_url, plato, add_notes };
+    const { name, brewery_id, style_id, abv, score, color, notes, photo_url, plato, add_notes, ibu } = updateBeerDto;
+    const updateObj: any = { name, brewery_id, style_id, abv, score, color, notes, photo_url, plato, add_notes, ibu };
     // Usuwam undefined
     Object.keys(updateObj).forEach(key => updateObj[key] === undefined && delete updateObj[key]);
     const supabaseUser = createSupabaseForUser(token);
