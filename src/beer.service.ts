@@ -39,7 +39,7 @@ export class BeerService {
   }
 
   async uploadPhoto(file: Express.Multer.File): Promise<string> {
-    const bucket = 'beer-photos'; // zmień jeśli inna nazwa
+    const bucket = process.env.SUPABASE_BUCKET_NAME || 'beer-photos';
     const fileExt = file.originalname.split('.').pop();
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
     const { data, error } = await supabase.storage.from(bucket).upload(fileName, file.buffer, {
@@ -84,13 +84,11 @@ export class BeerService {
     // Usuwam undefined
     Object.keys(updateObj).forEach(key => updateObj[key] === undefined && delete updateObj[key]);
     const supabaseUser = createSupabaseForUser(token);
-    console.log('updateBeer', { id, updateObj });
     const { data, error } = await supabaseUser
       .from('beers')
       .update(updateObj)
       .eq('id', id)
       .select();
-    console.log('updateBeer response', { data, error });
     if (error) {
       throw new Error(error.message);
     }
@@ -169,7 +167,6 @@ export class BeerService {
   async updateBrewery(id: string, updateBreweryDto: any, token?: string) {
     const supabaseUser = createSupabaseForUser(token);
     const numericId = Number(id);
-    console.log('updateBrewery', { id, numericId, type: typeof numericId, updateBreweryDto, token });
     const { data, error } = await supabaseUser
       .from('breweries')
       .update(updateBreweryDto)
@@ -197,7 +194,6 @@ export class BeerService {
   async updateStyle(id: string, updateStyleDto: any, token?: string) {
     const supabaseUser = createSupabaseForUser(token);
     const numericId = Number(id);
-    console.log('updateStyle', { id, numericId, type: typeof numericId, updateStyleDto, token });
     const { data, error } = await supabaseUser
       .from('styles')
       .update(updateStyleDto)
